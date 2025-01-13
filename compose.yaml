@@ -46,12 +46,12 @@ services:
       - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db-password
   frontend:
     build:
-      context: frontend
+      context: client
       target: development
     ports:
       - 3000:3000
     volumes:
-      - ./frontend/src:/code/src
+      - ./client/src:/code/src
       - /code/node_modules
     networks:
       - public
