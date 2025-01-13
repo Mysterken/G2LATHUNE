@@ -12,6 +12,10 @@ const morgan = require("morgan");
 // which is a best practice in Docker. Friends don't let friends code their apps to
 // do app logging to files in containers.
 
+const bodyParser = require('body-parser');
+
+const authRoutes = require('./routes/v1/authRoutes');
+
 const database = require("./database");
 
 // Appi
@@ -32,5 +36,11 @@ app.get("/healthz", function(req, res) {
   // if you want, you should be able to restrict this to localhost (include ipv4 and ipv6)
   res.send("I am happy and healthy\n");
 });
+
+// Middleware
+app.use(bodyParser.json());
+
+// Routes
+app.use('/api', authRoutes);
 
 module.exports = app;
