@@ -1,8 +1,9 @@
 const express = require('express');
-
+const rateLimit = require('express-rate-limit');
+const { rate_limiter_all, rate_limiter_update, rate_limiter_login, rate_limiter_register } = require('../../rate_limiter');
 const router = express.Router();
 
-router.get('/login', (req, res) => {
+router.get('/login', rate_limiter_login, (req, res) => {
     res.send('Login route');
 });
 
@@ -10,7 +11,7 @@ router.get('/logout', (req, res) => {
     res.send('Logout route');
 });
 
-router.post('/register', (req, res) => {
+router.post('/register', rate_limiter_register, (req, res) => {
     res.send('Register route');
 });
 

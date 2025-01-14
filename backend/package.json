@@ -16,9 +16,11 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.17.1",
+    "express-rate-limit": "^7.5.0",
     "knex": "^0.95.11",
     "morgan": "^1.10.0",
-    "mysql2": "^2.1.0"
+    "mysql2": "^2.1.0",
+    "node-docker-good-defaults": "file:"
   },
   "devDependencies": {
     "chai": "^4.2.0",
