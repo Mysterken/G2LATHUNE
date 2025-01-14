@@ -1,10 +1,10 @@
 const express = require('express');
-
+const { rate_limiter_all, rate_limiter_update, rate_limiter_login, rate_limiter_register } = require('../../rate_limiter');
 const router = express.Router();
 
 const database = require("../../database");
 
-router.get('/login', (req, res) => {
+router.get('/login', rate_limiter_login, (req, res) => {
     res.send('Login route');
 });
 
@@ -12,8 +12,7 @@ router.get('/logout', (req, res) => {
     res.send('Logout route');
 });
 
-
-router.post('/register', async (req, res) => {
+router.post('/register', rate_limiter_register, async(req, res) => {
     try {
         const { email, password } = req.body;
 
@@ -22,7 +21,7 @@ router.post('/register', async (req, res) => {
         }
 
         const sql = "INSERT INTO User (email, password) VALUES (?, ?)";
-        await database.raw(sql, [email, password]); 
+        await database.raw(sql, [email, password]);
         res.status(201).send({ message: 'User registered successfully', email });
     } catch (error) {
         console.error('Error during registration:', error);
