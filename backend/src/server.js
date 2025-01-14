@@ -14,7 +14,7 @@ const morgan = require("morgan");
 
 const bodyParser = require('body-parser');
 
-const authRoutes = require('./routes/v1/authRoutes');
+const authRoutesv1 = require('./routes/v1/authRoutes');
 
 const database = require("./database");
 
@@ -22,6 +22,16 @@ const database = require("./database");
 const app = express();
 
 app.use(morgan("common"));
+
+const cors = require('cors')
+
+const corsOptions = {
+  origin: 'http://localhost:3000',
+  credentials: true,
+  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+}
+
+app.use(cors(corsOptions));
 
 app.get("/", function(req, res, next) {
   database.raw('select VERSION() version')
@@ -41,6 +51,6 @@ app.get("/healthz", function(req, res) {
 app.use(bodyParser.json());
 
 // Routes
-app.use('/api', authRoutes);
+app.use('/api/v1/auth', authRoutesv1);
 
 module.exports = app;
