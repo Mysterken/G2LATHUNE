@@ -2,6 +2,8 @@ const express = require('express');
 
 const router = express.Router();
 
+const database = require("../../database");
+
 router.get('/login', (req, res) => {
     res.send('Login route');
 });
@@ -10,8 +12,22 @@ router.get('/logout', (req, res) => {
     res.send('Logout route');
 });
 
-router.post('/register', (req, res) => {
-    res.send('Register route');
+
+router.post('/register', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).send({ message: 'Email and password are required' });
+        }
+
+        const sql = "INSERT INTO User (email, password) VALUES (?, ?)";
+        await database.raw(sql, [email, password]); 
+        res.status(201).send({ message: 'User registered successfully', email });
+    } catch (error) {
+        console.error('Error during registration:', error);
+        res.status(500).send({ message: 'Internal server error', error: error.message });
+    }
 });
 
 router.post('/refresh', (req, res) => {

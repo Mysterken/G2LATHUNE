@@ -7,7 +7,7 @@ module.exports = {
   database: {
     host: process.env.DATABASE_HOST || "localhost",
     port: process.env.DATABASE_PORT,
-    database: process.env.DATABASE_DB,
+    database: 'example',
     user: process.env.DATABASE_USER,
     password: process.env.DATABASE_PASSWORD
       ? readFileSync(process.env.DATABASE_PASSWORD)
