@@ -23,14 +23,12 @@ router.post('/register', rate_limiter_register, async(req, res) => {
         // hash  pour le mot de passe
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
-        console.log(hashedPassword)
 
         const sql = "INSERT INTO User (email, password) VALUES (?, ?)";
         await database.raw(sql, [email, hashedPassword]);
 
         res.status(201).send({ message: 'User registered successfully', email });
     } catch (error) {
-        console.error(error);
         res.status(500).send({ message: 'An error occurred while registering the user' });
     }
 });
