@@ -63,8 +63,6 @@ router.post('/reset-password', async (req, res) => {
     try {
         const { email, password, newPassword } = req.body;
 
-        console.log('Corps de la requête reçu :', req.body);
-
         if (!email || !password || !newPassword) {
             return res.status(400).send({ message: 'Tous les champs (email, password, newPassword) sont requis.' });
         }
