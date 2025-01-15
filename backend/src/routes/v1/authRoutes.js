@@ -4,7 +4,7 @@ const router = express.Router();
 
 const database = require("../../database");
 
-router.get('/login', rate_limiter_login, (req, res) => {
+router.post('/login', rate_limiter_login, (req, res) => {
     res.send('Login route');
 });
 

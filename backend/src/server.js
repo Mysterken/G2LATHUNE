@@ -37,7 +37,6 @@ app.get("/healthz", (req, res) => {
     res.send("I am happy and healthy\n");
 });
 
-// Exemple d'accès à la base de données
 app.get("/", async (req, res, next) => {
     try {
         const [rows] = await database.raw('select VERSION() version');
