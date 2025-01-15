@@ -4,8 +4,26 @@ const router = express.Router();
 
 const database = require("../../database");
 
-router.get('/login', rate_limiter_login, (req, res) => {
-    res.send('Login route');
+router.post('/login', rate_limiter_login, async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        const sql = "Select * from User where email = ? and password = ?";
+        const result = await database.raw(sql, [email, password]); 
+
+        if (!result || result[0].length === 0) {
+            return res.status(401).send({ message: 'Invalid email or password' });
+        }
+        const user = result[0][0]; 
+
+        // Authentification réussie
+        res.send({ 
+            message: 'Login successful', 
+            user: { email: user.email} 
+        });
+    } catch (error) {
+        console.error('Aucun compte associé à cet email:', error);
+        res.status(500).send({ message: 'Internal server error', error: error.message });
+    }
 });
 
 router.get('/logout', (req, res) => {
@@ -19,7 +37,7 @@ router.post('/register', rate_limiter_register, async(req, res) => {
         if (!email || !password) {
             return res.status(400).send({ message: 'Email and password are required' });
         }
-
+        
         const sql = "INSERT INTO User (email, password) VALUES (?, ?)";
         await database.raw(sql, [email, password]);
         res.status(201).send({ message: 'User registered successfully', email });
