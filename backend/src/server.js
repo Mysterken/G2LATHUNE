@@ -11,6 +11,7 @@ const { rate_limiter_all } = require("./rate_limiter");
 // Import des routes
 const authRoutesv1 = require('./routes/v1/authRoutes');
 const ethRoutesv1 = require('./routes/v1/ethRoutes'); 
+const walletRoutesv1 = require('./routes/v1/walletRoutes');
 
 
 const app = express();
@@ -46,5 +47,6 @@ app.get("/", async (req, res, next) => {
     }
 });
 
-
+app.use('/api/v1/auth', rate_limiter_all, authRoutesv1, );
+app.use('/wallet', walletRoutesv1);
 module.exports = app;
