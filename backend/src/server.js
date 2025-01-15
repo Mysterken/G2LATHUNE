@@ -23,34 +23,36 @@ const app = express();
 
 app.use(morgan("common"));
 
-const cors = require('cors')
+const cors = require('cors');
+const { rate_limiter_all } = require("./rate_limiter");
 
 const corsOptions = {
-  origin: 'http://localhost:3000',
-  credentials: true,
-  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+    origin: 'http://localhost:3000',
+    credentials: true,
+    optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 }
 
 app.use(cors(corsOptions));
 
 app.get("/", function(req, res, next) {
-  database.raw('select VERSION() version')
-    .then(([rows, columns]) => rows[0])
-    .then((row) => res.json({ message: `Hello from MySQL ${row.version}` }))
-    .catch(next);
+    database.raw('select VERSION() version')
+        .then(([rows, columns]) => rows[0])
+        .then((row) => res.json({ message: `Hello from MySQL ${row.version}` }))
+        .catch(next);
 });
 
 app.get("/healthz", function(req, res) {
-  // do app logic here to determine if app is truly healthy
-  // you should return 200 if healthy, and anything else will fail
-  // if you want, you should be able to restrict this to localhost (include ipv4 and ipv6)
-  res.send("I am happy and healthy\n");
+    // do app logic here to determine if app is truly healthy
+    // you should return 200 if healthy, and anything else will fail
+    // if you want, you should be able to restrict this to localhost (include ipv4 and ipv6)
+    res.send("I am happy and healthy\n");
 });
 
 // Middleware
 app.use(bodyParser.json());
 
 // Routes
-app.use('/api/v1/auth', authRoutesv1);
-
+//app.use('/api/v1/auth', authRoutesv1);
+app.use('/api/v1/auth', rate_limiter_all, authRoutesv1, );
+//app.use('/api');
 module.exports = app;
