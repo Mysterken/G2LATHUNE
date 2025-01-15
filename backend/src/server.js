@@ -15,6 +15,7 @@ const morgan = require("morgan");
 const bodyParser = require('body-parser');
 
 const authRoutesv1 = require('./routes/v1/authRoutes');
+const walletRoutesv1 = require('./routes/v1/walletRoutes');
 
 const database = require("./database");
 
@@ -55,4 +56,5 @@ app.use(bodyParser.json());
 //app.use('/api/v1/auth', authRoutesv1);
 app.use('/api/v1/auth', rate_limiter_all, authRoutesv1, );
 //app.use('/api');
+app.use('/wallet', walletRoutesv1);
 module.exports = app;
