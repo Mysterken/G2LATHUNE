@@ -12,7 +12,7 @@ export const rate_limiter_update = rateLimit({
 
 export const rate_limiter_login = rateLimit({
     windowMs: 1 * 60 * 1000,
-    limit: 2,
+    limit: 10,
     standardHeaders: 'draft-8',
     legacyHeaders: false,
     message: 'Too many requests',
