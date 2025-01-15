@@ -63,7 +63,6 @@ router.post('/reset-password', async (req, res) => {
     try {
         const { email, password, newPassword } = req.body;
 
-        // Ajoutez un log pour vérifier le contenu de req.body
         console.log('Corps de la requête reçu :', req.body);
 
         if (!email || !password || !newPassword) {
@@ -86,7 +85,7 @@ router.post('/reset-password', async (req, res) => {
 
         res.send({ message: 'Mot de passe mis à jour avec succès.' });
     } catch (error) {
-        console.error('Erreur lors de la réinitialisation du mot de passe :', error);
+        res.send('Erreur lors de la réinitialisation du mot de passe :', error);
     }
 });
 
