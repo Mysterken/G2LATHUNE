@@ -2,59 +2,51 @@
 // optimized for Docker image
 
 const express = require("express");
-// this example uses express web framework so we know what longer build times
-// do and how Dockerfile layer ordering matters. If you mess up Dockerfile ordering
-// you'll see long build times on every code change + build. If done correctly,
-// code changes should be only a few seconds to build locally due to build cache.
-
-const morgan = require("morgan");
-// morgan provides easy logging for express, and by default it logs to stdout
-// which is a best practice in Docker. Friends don't let friends code their apps to
-// do app logging to files in containers.
-
+const morgan = require("morgan"); 
 const bodyParser = require('body-parser');
-
-const authRoutesv1 = require('./routes/v1/authRoutes');
-const walletRoutesv1 = require('./routes/v1/walletRoutes');
-
-const database = require("./database");
-
-// Appi
-const app = express();
-
-app.use(morgan("common"));
-
 const cors = require('cors');
+const database = require("./database");
 const { rate_limiter_all } = require("./rate_limiter");
 
-const corsOptions = {
+// Import des routes
+const authRoutesv1 = require('./routes/v1/authRoutes');
+const ethRoutesv1 = require('./routes/v1/ethRoutes'); 
+const walletRoutesv1 = require('./routes/v1/walletRoutes');
+
+
+const app = express();
+
+// Middlewares
+app.use(morgan("common")); 
+app.use(bodyParser.json()); 
+app.use(cors({
     origin: 'http://localhost:3000',
     credentials: true,
-    optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
-}
+    optionsSuccessStatus: 200
+}));
 
-app.use(cors(corsOptions));
+// Routes
+app.use('/api/v1/auth', rate_limiter_all, authRoutesv1);
+app.use('/api/v1/eth', rate_limiter_all, ethRoutesv1);
 
-app.get("/", function(req, res, next) {
-    database.raw('select VERSION() version')
-        .then(([rows, columns]) => rows[0])
-        .then((row) => res.json({ message: `Hello from MySQL ${row.version}` }))
-        .catch(next);
+app.get('/test', (req, res) => {
+    res.send('Le backend fonctionne !');
 });
 
-app.get("/healthz", function(req, res) {
-    // do app logic here to determine if app is truly healthy
-    // you should return 200 if healthy, and anything else will fail
-    // if you want, you should be able to restrict this to localhost (include ipv4 and ipv6)
+// Exemple de route 
+app.get("/healthz", (req, res) => {
     res.send("I am happy and healthy\n");
 });
 
-// Middleware
-app.use(bodyParser.json());
+app.get("/", async (req, res, next) => {
+    try {
+        const [rows] = await database.raw('select VERSION() version');
+        res.json({ message: `Hello from MySQL ${rows[0].version}` });
+    } catch (error) {
+        next(error);
+    }
+});
 
-// Routes
-//app.use('/api/v1/auth', authRoutesv1);
 app.use('/api/v1/auth', rate_limiter_all, authRoutesv1, );
-//app.use('/api');
 app.use('/wallet', walletRoutesv1);
 module.exports = app;
