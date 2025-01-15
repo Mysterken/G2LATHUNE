@@ -48,7 +48,7 @@ router.post('/register', rate_limiter_register, async(req, res) => {
 });
 
 router.post('/refresh', (req, res) => {
-    res.send('Refresh route');
+    res.status(401).send({ message: 'Unauthorized' });
 });
 
 router.post('/forgot-password', (req, res) => {
