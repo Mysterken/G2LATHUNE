@@ -7,7 +7,7 @@ const database = require("../../database");
 
 router.post('/login', rate_limiter_login, async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, newPassword } = req.body;
         const sql = "Select * from User where email = ? and password = ?";
         const result = await database.raw(sql, [email, password]); 
 
@@ -19,7 +19,7 @@ router.post('/login', rate_limiter_login, async (req, res) => {
         // Authentification réussie
         res.send({ 
             message: 'Login successful', 
-            user: { email: user.email} 
+            user: { email: user.email, password : user.password, newPassword: user.newPassword} 
         });
     } catch (error) {
         console.error('Aucun compte associé à cet email:', error);
@@ -59,9 +59,35 @@ router.post('/forgot-password', (req, res) => {
     res.send('Forgot password route');
 });
 
-router.post('/reset-password', (req, res) => {
-    res.send('Reset password route');
+router.post('/reset-password', async (req, res) => {
+    try {
+        const { email, password, newPassword } = req.body;
+
+        if (!email || !password || !newPassword) {
+            return res.status(400).send({ message: 'Tous les champs (email, password, newPassword) sont requis.' });
+        }
+
+        const sql = "Select * from User where email = ? and password = ?";
+        const result = await database.raw(sql, [email, password]);
+
+        if (!result || result[0].length === 0) {
+            return res.status(400).send({ message: 'Email ou mot de passe invalide.' });
+        }
+
+        if (newPassword.length === 0) {
+            return res.status(400).send({ message: 'Le nouveau mot de passe ne peut pas être vide.' });
+        }
+
+        const updateSql = "UPDATE User SET password = ? WHERE email = ?";
+        await database.raw(updateSql, [newPassword, email]);
+
+        res.send({ message: 'Mot de passe mis à jour avec succès.' });
+    } catch (error) {
+        res.send('Erreur lors de la réinitialisation du mot de passe :', error);
+    }
 });
+
+
 
 router.get('/verify-email', (req, res) => {
     res.send('Verify email route');
