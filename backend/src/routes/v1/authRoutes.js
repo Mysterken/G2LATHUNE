@@ -1,4 +1,5 @@
 const express = require('express');
+const bcrypt = require('bcryptjs');
 const { rate_limiter_all, rate_limiter_update, rate_limiter_login, rate_limiter_register } = require('../../rate_limiter');
 const router = express.Router();
 
@@ -19,13 +20,16 @@ router.post('/register', rate_limiter_register, async(req, res) => {
         if (!email || !password) {
             return res.status(400).send({ message: 'Email and password are required' });
         }
+        // hash  pour le mot de passe
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
 
         const sql = "INSERT INTO User (email, password) VALUES (?, ?)";
-        await database.raw(sql, [email, password]);
+        await database.raw(sql, [email, hashedPassword]);
+
         res.status(201).send({ message: 'User registered successfully', email });
     } catch (error) {
-        console.error('Error during registration:', error);
-        res.status(500).send({ message: 'Internal server error', error: error.message });
+        res.status(500).send({ message: 'An error occurred while registering the user' });
     }
 });
 
