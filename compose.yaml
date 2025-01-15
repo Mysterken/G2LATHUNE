@@ -12,6 +12,7 @@ services:
       - DATABASE_PASSWORD=/run/secrets/db-password
       - DATABASE_HOST=db
       - NODE_ENV=development
+      - ETHERSCAN_API_KEY=${ETHERSCAN_API_KEY}
     ports:
       - 80:80
       - 9229:9229
