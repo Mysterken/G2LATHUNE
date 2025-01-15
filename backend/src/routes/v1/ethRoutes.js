@@ -34,29 +34,5 @@ router.get('/balance/:address', async (req, res) => {
       res.status(500).json({ error: error.message });
     }
   });
-  
-
-
-
-// router.get('/balance/:address', async (req, res) => {
-//     const { address } = req.params;
-
-//     // Validation de l'adresse Ethereum
-//     if (!isEthereumAddress(address)) {
-//         return res.status(400).json({ error: 'Invalid Ethereum address' });
-//     }
-
-//     try {
-//         // Appel au service pour récupérer le solde
-//         const balance = await getBalance(address);
-//         res.json({
-//             address: address,
-//             balance: balance,
-//         });
-//     } catch (error) {
-//         console.error(`Erreur lors de la récupération du solde : ${error.message}`);
-//         res.status(500).json({ error: 'Unable to retrieve balance' });
-//     }
-// });
 
 module.exports = router;
