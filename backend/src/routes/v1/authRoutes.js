@@ -27,7 +27,7 @@ router.post('/login', rate_limiter_login, async (req, res) => {
     }
 });
 
-router.get('/logout', (req, res) => {
+router.delete('/logout', (req, res) => {
     res.send('Logout route');
 });
 
