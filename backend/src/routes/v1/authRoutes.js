@@ -5,27 +5,44 @@ const router = express.Router();
 
 const database = require("../../database");
 
-router.post('/login', rate_limiter_login, async (req, res) => {
+router.post('/login', rate_limiter_login, async(req, res) => {
     try {
         const { email, password } = req.body;
-        const sql = "Select * from User where email = ? and password = ?";
-        const result = await database.raw(sql, [email, password]); 
 
-        if (!result || result[0].length === 0) {
-            return res.status(401).send({ message: 'Invalid email or password' });
+        // Vérification des champs
+        if (!email || !password) {
+            return res.status(400).send({ message: 'Email et password sont requise' });
         }
-        const user = result[0][0]; 
+
+        // Rechercher l'utilisateur dans la base
+        const sql = "SELECT * FROM User WHERE email = ?";
+        const [result] = await database.raw(sql, [email]); // Récupérer l'utilisateur par email
+
+        if (!result || result.length === 0) {
+            return res.status(401).send({ message: 'Invalide email ou password' });
+        }
+
+        const user = result[0]; // Utilisateur trouvé
+        const hashedPassword = user.password; // Récupérer le hash enregistré
+
+        // Comparer le mot de passe en clair avec le hash
+        const isMatch = await bcrypt.compare(password, hashedPassword);
+
+        if (!isMatch) {
+            return res.status(401).send({ message: 'Invalide email ou password' });
+        }
 
         // Authentification réussie
-        res.send({ 
-            message: 'Login successful', 
-            user: { email: user.email} 
+        res.send({
+            message: 'Login successful',
+            user: { email: user.email }
         });
     } catch (error) {
-        console.error('Aucun compte associé à cet email:', error);
+        console.error('Erreur lors de la connexion:', error);
         res.status(500).send({ message: 'Internal server error', error: error.message });
     }
 });
+
 
 router.delete('/logout', (req, res) => {
     res.send('Logout route');

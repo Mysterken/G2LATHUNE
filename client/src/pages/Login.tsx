@@ -16,7 +16,6 @@ const Login = () => {
             const { data } = await API.post("/auth/login", { email, password });
             login();
             localStorage.setItem("token", data.accessToken);
-            console.log(data);
         } catch (error) {
             toast.error("Erreur lors de la connection", {
                 position: "bottom-right",
