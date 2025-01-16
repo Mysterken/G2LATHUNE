@@ -103,7 +103,6 @@ router.post('/reset-password', async(req, res) => {
             return res.status(400).send({ message: 'Mot de passe invalide.' });
         }
         const user = userToken[0];
-        console.log(user);
         if (!user?.password_refresh_token) {
             res.status(401).send({message: 'Pas de token dans la base de données'})
         }
