@@ -59,15 +59,12 @@ router.post('/register', rate_limiter_register, async (req, res) => {
         const userExists = await database.raw(checkSql, [email]);
 
         if (userExists[0].length > 0) {
-            return res.status(409).send({ message: "User exists" }); // Ajout d'un return ici
+            return res.status(409).send({ message: "User exists" }); 
         }
 
-        if (!password || password.length < 6 || 
-            !/[A-Z]/.test(password) || 
-            !/[a-z]/.test(password) || 
-            !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+        if (!password || password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password) ||!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
             return res.status(400).send({ 
-                message: 'Password must be at least 6 characters long, contain at least one uppercase letter, one lowercase letter, and one special character.' 
+                message: 'Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, and one special character.' 
             });
         }
         // Hash pour le mot de passe
