@@ -48,23 +48,39 @@ router.delete('/logout', (req, res) => {
     res.send('Logout route');
 });
 
-router.post('/register', rate_limiter_register, async(req, res) => {
+router.post('/register', rate_limiter_register, async (req, res) => {
     try {
         const { email, password } = req.body;
 
         if (!email || !password) {
             return res.status(400).send({ message: 'Email and password are required' });
         }
-        // hash  pour le mot de passe
+        const checkSql = "Select * from User where email = ?";
+        const userExists = await database.raw(checkSql, [email]);
+
+        if (userExists[0].length > 0) {
+            return res.status(409).send({ message: "User exists" }); // Ajout d'un return ici
+        }
+
+        if (!password || password.length < 6 || 
+            !/[A-Z]/.test(password) || 
+            !/[a-z]/.test(password) || 
+            !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+            return res.status(400).send({ 
+                message: 'Password must be at least 6 characters long, contain at least one uppercase letter, one lowercase letter, and one special character.' 
+            });
+        }
+        // Hash pour le mot de passe
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
         const sql = "INSERT INTO User (email, password) VALUES (?, ?)";
         await database.raw(sql, [email, hashedPassword]);
 
-        res.status(201).send({ message: 'User registered successfully', email });
+        return res.status(201).send({ message: 'User registered successfully', email });
     } catch (error) {
-        res.status(500).send({ message: 'An error occurred while registering the user' });
+        console.error('Erreur lors de l\'enregistrement :', error);
+        return res.status(500).send({ message: 'An error occurred while registering the user' });
     }
 });
 
