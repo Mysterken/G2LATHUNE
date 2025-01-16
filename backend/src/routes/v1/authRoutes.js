@@ -51,7 +51,6 @@ router.delete('/logout', (req, res) => {
 router.post('/register', rate_limiter_register, async (req, res) => {
     try {
         const { email, password } = req.body;
-
         if (!email || !password) {
             return res.status(400).send({ message: 'Email and password are required' });
         }
@@ -91,29 +90,32 @@ router.post('/forgot-password', (req, res) => {
 
 router.post('/reset-password', async(req, res) => {
     try {
-        const { email, password, newPassword } = req.body;
+        const { password, token } = req.body;
 
-        if (!email || !password || !newPassword) {
-            return res.status(400).send({ message: 'Tous les champs (email, password, newPassword) sont requis.' });
+        const tokenSql = "Select * from User where password_refresh_token = ?";
+        const userToken = database.raw(tokenSql, [token]);
+
+        if (!password) {
+            return res.status(400).send({ message: 'Tous les champs sont requis.' });
         }
 
-        const sql = "Select * from User where email = ? and password = ?";
-        const result = await database.raw(sql, [email, password]);
-
-        if (!result || result[0].length === 0) {
-            return res.status(400).send({ message: 'Email ou mot de passe invalide.' });
+        if (!userToken) {
+            return res.status(400).send({ message: 'Mot de passe invalide.' });
         }
-
-        if (newPassword.length === 0) {
-            return res.status(400).send({ message: 'Le nouveau mot de passe ne peut pas être vide.' });
+        const user = userToken[0];
+        if (!user?.password_refresh_token) {
+            res.status(401).send({message: 'Pas de token dans la base de données'})
         }
+        const updateSql = "UPDATE User SET password = ? WHERE password_refresh_token = ?";
+        await database.raw(updateSql, [password, token]);
 
-        const updateSql = "UPDATE User SET password = ? WHERE email = ?";
-        await database.raw(updateSql, [newPassword, email]);
+        const deleteSql = "UPDATE User SET password_refresh_token = NULL WHERE password_refresh_token = ?";
+        await database.raw(deleteSql, [token]);
 
         res.send({ message: 'Mot de passe mis à jour avec succès.' });
     } catch (error) {
-        res.send('Erreur lors de la réinitialisation du mot de passe :', error);
+        console.error(error);
+        res.send('Erreur lors de la réinitialisation du mot de passe');
     }
 });
 
