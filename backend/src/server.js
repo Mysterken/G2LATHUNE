@@ -47,6 +47,5 @@ app.get("/", async (req, res, next) => {
     }
 });
 
-app.use('/api/v1/auth', rate_limiter_all, authRoutesv1, );
 app.use('/wallet', walletRoutesv1);
 module.exports = app;
