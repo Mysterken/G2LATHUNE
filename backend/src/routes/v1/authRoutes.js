@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const { rate_limiter_all, rate_limiter_update, rate_limiter_login, rate_limiter_register } = require('../../rate_limiter');
 const router = express.Router();
-
+const jwt = require('jsonwebtoken');
 const database = require("../../database");
 
 router.post('/login', rate_limiter_login, async(req, res) => {
@@ -32,10 +32,13 @@ router.post('/login', rate_limiter_login, async(req, res) => {
             return res.status(401).send({ message: 'Invalide email ou password' });
         }
 
+        const token = jwt.sign({ email }, "secret", { expiresIn: '1h' });
+
         // Authentification réussie
         res.send({
             message: 'Login successful',
-            user: { email: user.email }
+            user: { email: user.email },
+            accessToken: token
         });
     } catch (error) {
         console.error('Erreur lors de la connexion:', error);
@@ -80,9 +83,44 @@ router.post('/register', rate_limiter_register, async (req, res) => {
     }
 });
 
-router.post('/refresh', (req, res) => {
-    res.status(401).send({ message: 'Unauthorized' });
+router.post('/refresh', async (req, res) => {
+    try {
+        const { refreshToken } = req.body;
+
+        if (!refreshToken) {
+            return res.status(400).send({ message: 'Refresh token is required.' });
+        }
+
+        // Find user by refresh token
+        const sql = "SELECT * FROM User WHERE refresh_token = ?";
+        const [result] = await database.raw(sql, [refreshToken]);
+
+        if (!result || result.length === 0) {
+            return res.status(403).send({ message: 'Invalid refresh token.' });
+        }
+
+        const user = result[0];
+
+        // Verify the refresh token
+        try {
+            jwt.verify(refreshToken, "refresh_secret"); // Use a separate secret for refresh tokens
+        } catch (error) {
+            return res.status(403).send({ message: 'Invalid or expired refresh token.' });
+        }
+
+        // Generate a new access token
+        const newAccessToken = jwt.sign({ email: user.email }, "access_secret", { expiresIn: '1h' });
+
+        return res.send({
+            message: 'Access token refreshed successfully.',
+            accessToken: newAccessToken,
+        });
+    } catch (error) {
+        console.error('Error refreshing token:', error);
+        return res.status(500).send({ message: 'Internal server error.' });
+    }
 });
+
 
 router.post('/forgot-password', (req, res) => {
     res.send('Forgot password route');
