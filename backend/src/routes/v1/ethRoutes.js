@@ -16,6 +16,9 @@ const isEthereumAddress = (address) => /^0x[a-fA-F0-9]{40}$/.test(address);
  */
 
 router.get('/balance/:address', async (req, res) => {
+    // recuperer adresse depuis la colonne wallet de User au lieu de celui url
+
+
     const { address } = req.params;
     const network = req.query.network || 'mainnet'; 
   

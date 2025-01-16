@@ -1,20 +1,39 @@
-const fs = require("fs");
+const express = require('express');
+const knex = require('../../database'); // Import de Knex
+const { getBalance } = require('../../services/etherscan');
 
-const readFileSync = filename => fs.readFileSync(filename).toString("utf8");
+const router = express.Router();
 
-// Constants
-module.exports = {
-  database: {
-    host: process.env.DATABASE_HOST || "localhost",
-    port: process.env.DATABASE_PORT,
-    database: 'example',
-    user: process.env.DATABASE_USER,
-    password: process.env.DATABASE_PASSWORD
-      ? readFileSync(process.env.DATABASE_PASSWORD)
-      : null
-  },
-  port: process.env.PORT || 8080
-  // if you're not using docker compose for local development, this will default to 8080
-  // to prevent non-root permission problems with 80. Dockerfile is set to make this 80
-  // because containers don't have that issue :)
-};
+const isEthereumAddress = (address) => /^0x[a-fA-F0-9]{40}$/.test(address);
+
+router.get('/balance/:id', async (req, res) => {
+  const userId = req.params.id;
+  const network = req.query.network || 'mainnet';
+
+  try {
+    const user = await knex('User').select('wallet').where({ id: userId }).first();
+
+    if (!user || !user.wallet) {
+      return res.status(404).json({ error: 'Utilisateur ou adresse wallet non trouvé(e)' });
+    }
+
+    const address = user.wallet;
+
+    if (!isEthereumAddress(address)) {
+      return res.status(400).json({ error: 'Adresse Ethereum invalide' });
+    }
+
+    const balance = await getBalance(address, network);
+
+    res.json({
+      network: network,
+      address: address,
+      balance: balance,
+    });
+  } catch (error) {
+    console.error(`Erreur : ${error.message}`);
+    res.status(500).json({ error: 'Erreur interne' });
+  }
+});
+
+module.exports = router;
