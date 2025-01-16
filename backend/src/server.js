@@ -5,12 +5,20 @@ const cors = require('cors');
 const database = require("./database");
 const { rate_limiter_all } = require("./rate_limiter");
 
+
 const authRoutesv1 = require('./routes/v1/authRoutes');
-const ethRoutesv1 = require('./routes/v1/ethRoutes');
-const walletRoutesv1 = require('./routes/v1/walletRoutes');
+// const ethRoutesv1 = require('./routes/v1/ethRoutes');
+// const walletRoutesv1 = require('./routes/v1/walletRoutes');
 const balanceRoutes = require('./routes/api/balance'); 
 
 const app = express();
+const walletRoutesv1 = require('./routes/v1/walletRoutes');
+const ethRoutesv1 = require('./routes/v1/ethRoutes');
+
+
+
+app.use('/wallet', walletRoutesv1);
+app.use('/api/v1/eth', rate_limiter_all, ethRoutesv1);
 
 app.use(morgan("common"));
 app.use(bodyParser.json());
@@ -29,6 +37,12 @@ app.use('/api/balance', balanceRoutes);
 app.get('/test', (req, res) => {
     res.send('Le backend fonctionne !');
 });
+
+// Test
+app.get('/test-api', (req, res) => {
+    res.send({ message: 'API test endpoint is working!' });
+});
+
 
 // Health check
 app.get("/healthz", (req, res) => {

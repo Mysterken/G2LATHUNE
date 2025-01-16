@@ -3,6 +3,8 @@ require('dotenv').config();
 
 // Clé API Etherscan
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
+// const API_KEY = process.env.ETHERSCAN_API_KEY;
+
 
 // URLs des réseaux
 const NETWORK_URLS = {
