@@ -3,53 +3,39 @@ const router = express.Router();
 const database = require("../../database");
 const jwt = require('jsonwebtoken');
 
-router.get('/get_wallet', async (req, res) => {
+const authenticate = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: "Unauthorized" });
 
-    if (!req.headers.authorization) {
-        return res.status(401).json({ error: "Unauthorized" });
+    const token = authHeader.split(' ')[1];
+    try {
+        req.user = jwt.verify(token, 'secret');
+        next();
+    } catch {
+        res.status(401).json({ error: "Unauthorized" });
     }
+};
 
-    // fetch jwt from bearer token
-    const token = req.headers.authorization.split(' ')[1];
-    const decoded = jwt.verify(token, 'secret');
-    const email = decoded.email;
-
+const getUserByEmail = async (email) => {
     const sql = "SELECT * FROM User WHERE email = ?";
-    let [user] = await database.raw(sql, [email])
+    const [user] = await database.raw(sql, [email]);
+    return user.length ? user[0] : null;
+};
 
-    if (!user || user.length === 0) {
-        return res.status(401).json({ error: "Unauthorized" });
-    }
+router.get('/get_wallet', authenticate, async (req, res) => {
+    const user = await getUserByEmail(req.user.email);
+    if (!user) return res.status(401).json({ error: "Unauthorized" });
 
-    user = user[0];
-
-    const wallet = user.wallet || "";
-
-    res.json({ wallet });
+    res.json({ wallet: user.wallet || "" });
 });
 
-router.put('/update_wallet', async (req, res) => {
-    if (!req.headers.authorization) {
-        return res.status(401).json({ error: "Unauthorized" });
-    }
-
-    const token = req.headers.authorization.split(' ')[1];
-    const decoded = jwt.verify(token, 'secret');
-    const email = decoded.email;
-
-    const sql = "SELECT * FROM User WHERE email = ?";
-    let [user] = await database.raw(sql, [email])
-
-    if (!user || user.length === 0) {
-        return res.status(401).json({ error: "Unauthorized" });
-    }
-
-    user = user[0];
+router.put('/update_wallet', authenticate, async (req, res) => {
+    const user = await getUserByEmail(req.user.email);
+    if (!user) return res.status(401).json({ error: "Unauthorized" });
 
     const wallet = req.body.wallet || "";
-
     const updateSql = "UPDATE User SET wallet = ? WHERE email = ?";
-    await database.raw(updateSql, [wallet, email]);
+    await database.raw(updateSql, [wallet, req.user.email]);
 
     res.json({ wallet });
 });
