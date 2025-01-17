@@ -28,6 +28,7 @@ app.use(cors({
 // Routes
 app.use('/api/v1/auth', rate_limiter_all, authRoutesv1);
 app.use('/api/v1/eth', rate_limiter_all, ethRoutesv1);
+app.use('/api/v1/wallet', rate_limiter_all, walletRoutesv1);
 
 app.get('/test', (req, res) => {
     res.send('Le backend fonctionne !');
@@ -47,5 +48,5 @@ app.get("/", async (req, res, next) => {
     }
 });
 
-app.use('/wallet', walletRoutesv1);
+
 module.exports = app;

@@ -28,4 +28,17 @@ router.get('/get-transactions', async(req, res) => {
     res.json({ normalTransactions, internalTransactions });
 });
 
+router.get('/get_data', (req, res) => {
+
+    const priceEvolution = [
+        { date: "2021-01-01", price: 100 },
+        { date: "2021-01-02", price: 110 },
+        { date: "2021-01-03", price: 120 },
+        { date: "2021-01-04", price: 130 },
+        { date: "2021-01-05", price: 140 },
+    ];
+
+    res.send(priceEvolution);
+});
+
 module.exports = router;
