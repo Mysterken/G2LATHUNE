@@ -24,7 +24,7 @@
         "knex": "^0.95.11",
         "morgan": "^1.10.0",
         "mysql2": "^2.1.0",
-        "node-docker-good-defaults": "file:",
+        "node-docker-good-defaults": "file:"
     },
     "devDependencies": {
         "chai": "^4.2.0",

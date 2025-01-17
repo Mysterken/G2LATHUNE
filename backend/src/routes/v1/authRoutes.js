@@ -5,15 +5,14 @@ const { rate_limiter_all, rate_limiter_update, rate_limiter_login, rate_limiter_
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const database = require("../../database");
-const crypto = require('crypto');
 
-const getUserByEmail = async (email) => {
+const getUserByEmail = async(email) => {
     const sql = "SELECT * FROM User WHERE email = ?";
     const [result] = await database.raw(sql, [email]);
     return result.length ? result[0] : null;
 };
 
-const hashPassword = async (password) => {
+const hashPassword = async(password) => {
     const saltRounds = 10;
     return await bcrypt.hash(password, saltRounds);
 };
@@ -22,7 +21,7 @@ const validatePassword = (password) => {
     return password.length >= 8 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /\d/.test(password) && /[!@#$%^&*(),.?":{}|<>]/.test(password);
 };
 
-router.post('/login', rate_limiter_login, async (req, res) => {
+router.post('/login', rate_limiter_login, async(req, res) => {
     try {
         const { email, password } = req.body;
         if (!email || !password) return res.status(400).send({ message: 'Email et password sont requise' });
@@ -64,7 +63,7 @@ router.post('/register', rate_limiter_register, async(req, res) => {
         const hashedPassword = await hashPassword(password);
 
         // creer email_verification_token random avec lib crypto
-        const token = crypto.randomBytes(64).toString('hex'); 
+        const token = crypto.randomBytes(64).toString('hex');
         // ajouter au sql
 
 
@@ -80,7 +79,7 @@ router.post('/register', rate_limiter_register, async(req, res) => {
     }
 });
 
-router.post('/refresh', async (req, res) => {
+router.post('/refresh', async(req, res) => {
     try {
         const { refreshToken } = req.body;
         if (!refreshToken) return res.status(400).send({ message: 'Refresh token is required.' });
@@ -145,7 +144,7 @@ router.post("/forgot-password", async(req, res) => {
     }
 });
 
-router.post('/reset-password', async (req, res) => {
+router.post('/reset-password', async(req, res) => {
     try {
         const { password, token } = req.body;
         if (!password) return res.status(400).send({ message: 'Tous les champs sont requis.' });
@@ -164,7 +163,7 @@ router.post('/reset-password', async (req, res) => {
     }
 });
 
-router.post('/verify-email', async (req, res) => {
+router.post('/verify-email', async(req, res) => {
     try {
         // Récupération du token depuis le body
         const rawToken = req.body;
@@ -179,18 +178,18 @@ router.post('/verify-email', async (req, res) => {
         const result = await database.raw(checkSql, [token]);
         const user = result[0][0];
         if (!user) {
-             res.status(401).send({ message: 'Invalid or expired token.' });
+            res.status(401).send({ message: 'Invalid or expired token.' });
         } else {
-        // Mise à jour pour invalider le token
-        const updateSql = "UPDATE User SET email_verification_token = NULL WHERE Id = ?";
-        await database.raw(updateSql, [user.Id]);
-        // Réponse finale : confirmation
-        res.send({ message: 'Email successfully verified.' });
+            // Mise à jour pour invalider le token
+            const updateSql = "UPDATE User SET email_verification_token = NULL WHERE Id = ?";
+            await database.raw(updateSql, [user.Id]);
+            // Réponse finale : confirmation
+            res.send({ message: 'Email successfully verified.' });
         }
 
         const sql = "UPDATE User SET is_email_verified = '1' WHERE Id = ?";
         await database.raw(sql, [user.Id]);
-        
+
     } catch (error) {
         console.error('Error verifying email:', error);
         return res.status(500).send({ message: 'Internal server error.' });
