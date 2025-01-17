@@ -149,8 +149,13 @@ router.post('/reset-password', async(req, res) => {
         const { password, token } = req.body;
         if (!password) return res.status(400).send({ message: 'Tous les champs sont requis.' });
 
-        const user = await getUserByEmail(token);
-        if (!user || !user.password_refresh_token) return res.status(400).send({ message: 'Mot de passe invalide.' });
+        // Vérification si le token existe en base
+        const checkSql = "SELECT * FROM User WHERE password_refresh_token = ?";
+        const result = await database.raw(checkSql, [token]);
+        const user = result[0][0];
+        if (!user) {
+            return res.status(401).send({ message: 'Token invalide ou expiré.' });
+        }
 
         const hashedPassword = await hashPassword(password);
         const updateSql = "UPDATE User SET password = ?, password_refresh_token = NULL WHERE password_refresh_token = ?";
@@ -159,7 +164,7 @@ router.post('/reset-password', async(req, res) => {
         res.send({ message: 'Mot de passe mis à jour avec succès.' });
     } catch (error) {
         console.error(error);
-        res.send('Erreur lors de la réinitialisation du mot de passe');
+        res.status(500).send({ message: 'Erreur interne du serveur.' });
     }
 });
 
