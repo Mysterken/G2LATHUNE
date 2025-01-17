@@ -31,6 +31,12 @@ router.post('/login', rate_limiter_login, async (req, res) => {
         }
 
         const token = jwt.sign({ email }, "secret", { expiresIn: '1h' });
+
+        // we hash the token to store it in the database
+        const hashedToken = await bcrypt.hash(token, 10);
+        const updateSql = "UPDATE User SET refresh_token = ? WHERE email = ?";
+        await database.raw(updateSql, [hashedToken, email]);
+
         res.send({ message: 'Login successful', user: { email: user.email }, accessToken: token });
     } catch (error) {
         console.error('Erreur lors de la connexion:', error);

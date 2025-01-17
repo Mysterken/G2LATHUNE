@@ -2,14 +2,22 @@ const express = require('express');
 const router = express.Router();
 const database = require("../../database");
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
-const authenticate = (req, res, next) => {
+const authenticate = async (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) return res.status(401).json({ error: "Unauthorized" });
 
     const token = authHeader.split(' ')[1];
     try {
         req.user = jwt.verify(token, 'secret');
+        const sql = "SELECT * FROM User WHERE email = ?";
+        const [user] = await database.raw(sql, [req.user.email]);
+
+        if (!user.length || !await bcrypt.compare(token, user[0].refresh_token)) {
+            return res.status(401).json({ error: "Unauthorized" });
+        }
+
         next();
     } catch {
         res.status(401).json({ error: "Unauthorized" });
