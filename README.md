@@ -1,4 +1,8 @@
 # React-Node-Mysql Application
+<div align = "center">
+  <img src = "doc/image.webp" width = 750> 
+</div>
+
 
 ## Description
 
