@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const database = require("../../database");
 require('dotenv').config();
+const jwt = require('jsonwebtoken');
 
 const apiKey = process.env.KEY_API;
 
@@ -28,7 +29,29 @@ router.get('/get-transactions', async(req, res) => {
     res.json({ normalTransactions, internalTransactions });
 });
 
-router.get('/get_data', (req, res) => {
+router.get('/get_data', async (req, res) => {
+
+    // check if there is a bearer token
+    if (!req.headers.authorization) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    // fetch jwt from bearer token
+    const token = req.headers.authorization.split(' ')[1];
+    const decoded = jwt.verify(token, 'secret');
+    const email = decoded.email;
+
+    const sql = "SELECT * FROM User WHERE email = ?";
+    let [user] = await database.raw(sql, [email])
+
+    if (!user || user.length === 0) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    user = user[0];
+
+    const wallet = user.wallet;
+
 
     const priceEvolution = [
         { date: "2021-01-01", price: 100 },
