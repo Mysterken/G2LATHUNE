@@ -1,5 +1,5 @@
 const express = require('express');
-const { getBalance } = require('../../services/Etherscan');
+const { getBalance, getTransactions } = require('../../services/Etherscan');
 
 const router = express.Router();
 
@@ -34,5 +34,30 @@ router.get('/balance/:address', async (req, res) => {
       res.status(500).json({ error: error.message });
     }
   });
+
+/**
+ * Route : GET /transactions/:address
+ * Description : Récupère les transactions d'une adresse Ethereum.
+ */
+
+router.get('/transactions/:address', async (req, res) => {
+  const { address } = req.params;
+  const network = req.query.network || 'mainnet'; 
+
+  if (!isEthereumAddress(address)) {
+    return res.status(400).json({ error: 'Adresse Ethereum invalide' });
+  }
+
+  try {
+    const transactions = await getTransactions(address, network);
+    res.json({
+      network: network,
+      address: address,
+      transactions: transactions,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 module.exports = router;
