@@ -52,14 +52,11 @@ router.get('/get_data', async (req, res) => {
 
     const wallet = user.wallet;
 
-
-    const priceEvolution = [
-        { date: "2021-01-01", price: 100 },
-        { date: "2021-01-02", price: 110 },
-        { date: "2021-01-03", price: 120 },
-        { date: "2021-01-04", price: 130 },
-        { date: "2021-01-05", price: 140 },
-    ];
+    // generate 5-10 random price evolution
+    const priceEvolution = Array.from({ length: Math.floor(Math.random() * 6) + 5 }, (_, i) => ({
+        date: `2021-01-${i + 1}`,
+        price: Math.floor(Math.random() * 1000) + 100,
+    }));
 
     res.send(priceEvolution);
 });
