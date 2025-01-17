@@ -62,7 +62,7 @@ app.get("/reset_db", async (req, res, next) => {
                 password VARCHAR(100) NOT NULL, 
                 email VARCHAR(100) NOT NULL, 
                 wallet TEXT, 
-                password_refresh_token VARCHAR(100), 
+                password_refresh_token TEXT, 
                 is_email_verified TINYINT(1) DEFAULT 0, 
                 email_verification_token TEXT,
                 refresh_token TEXT
