@@ -10,7 +10,7 @@ const ForgotPassword = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!email || !/\S+@\S+\.\S+/.test(email)) {
-            setError("Veuillez entrer une adresse email valide.");
+            setError("Please enter a valid email address.");
             return;
         }
         setIsLoading(true);
@@ -19,8 +19,8 @@ const ForgotPassword = () => {
             setMessage(data.message);
             setError("");
         } catch (error) {
-            console.error("Échec de l'envoi du lien de réinitialisation :", error);
-            setError("Échec de l'envoi du lien de réinitialisation. Veuillez réessayer.");
+            console.error("Failed to send reset password link:", error);
+            setError("Failed to send reset password link. Please try again.");
         } finally {
             setIsLoading(false);
         }
@@ -28,7 +28,7 @@ const ForgotPassword = () => {
 
     return (
         <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-            <h1 className="text-2xl font-bold text-center mb-4">Mot de passe oublié</h1>
+            <h1 className="text-2xl font-bold text-center mb-4">Forgot Password</h1>
             {msg && (
                 <div
                     className="text-green-500 bg-green-50 p-2 rounded-md flex items-center mb-4"
@@ -63,9 +63,9 @@ const ForgotPassword = () => {
                     type="submit"
                     disabled={isLoading}
                     className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:bg-blue-300"
-                    aria-label="Envoyer le lien de réinitialisation"
+                    aria-label="Send reset password link"
                 >
-                    {isLoading ? "Envoi en cours..." : "Envoyer le lien de réinitialisation"}
+                    {isLoading ? "Sending..." : "Send reset password link"}
                 </button>
             </form>
         </div>
