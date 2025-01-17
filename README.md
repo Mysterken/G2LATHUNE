@@ -13,41 +13,42 @@ Ce projet est une application web composée d'un frontend en React, d'un backend
 
 1. Clonez le dépôt :
 
-```sh'
+```sh
 git clone https://github.com/Mysterken/G2LATHUNE
 cd G2LATHUNE
-
+```
 2. Créez un fichier .env dans le dossier backend avec les variables d'environnement nécessaires :
 
-
+```env
 ETHERSCAN_API_KEY=<votre-cle-api-etherscan>
-
+```
 
 3. Démarrez les services avec Docker Compose :
+```sh
 docker compose up -d
-
-Utilisation
+```
+### Utilisation
 
 Accédez à l'application frontend à l'adresse http://localhost:3000.
 L'API backend est accessible à l'adresse http://localhost:80.
 
-Fonctionnalités
+## Fonctionnalités
 
-Backend
+### Backend
 
 Authentification et gestion des utilisateurs
 Limitation du taux de requêtes
 Intégration avec l'API Etherscan pour récupérer les soldes des portefeuilles Ethereum
 Routes pour gérer les transactions et les profils des utilisateurs
 
-Frontend
+### Frontend
 
 Inscription et connexion des utilisateurs
 Gestion du profil utilisateur
 Visualisation de l'évolution des prix du portefeuille crypto
 Protection des routes avec des composants protégés
 
-Licence
+## Licence
 Ce projet est sous licence MIT. Voir le fichier LICENSE pour plus de détails.
 
 
