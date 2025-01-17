@@ -4,6 +4,7 @@ const { rate_limiter_all, rate_limiter_update, rate_limiter_login, rate_limiter_
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const database = require("../../database");
+const crypto = require('crypto');
 
 const getUserByEmail = async (email) => {
     const sql = "SELECT * FROM User WHERE email = ?";
@@ -60,9 +61,17 @@ router.post('/register', rate_limiter_register, async (req, res) => {
         }
 
         const hashedPassword = await hashPassword(password);
-        const sql = "INSERT INTO User (email, password) VALUES (?, ?)";
-        await database.raw(sql, [email, hashedPassword]);
 
+        // creer email_verification_token random avec lib crypto
+        const token = crypto.randomBytes(64).toString('hex'); 
+        // ajouter au sql
+
+
+        const sql = "INSERT INTO User (email, password, email_verification_token) VALUES (?, ?, ?)";
+        await database.raw(sql, [email, hashedPassword, token]);
+
+        // console log localhost3000/verify-email?token=ehbfhejkqbfh
+        console.log("http://localhost:3000/verify-email/" + token);
         res.status(201).send({ message: 'User registered successfully', email });
     } catch (error) {
         console.error('Erreur lors de l\'enregistrement :', error);
@@ -115,8 +124,38 @@ router.post('/reset-password', async (req, res) => {
     }
 });
 
-router.get('/verify-email', (req, res) => {
-    res.send('Verify email route');
+router.post('/verify-email', async (req, res) => {
+    try {
+        // Récupération du token depuis le body
+        const rawToken = req.body;
+        const token = rawToken.token;
+
+        if (!token) {
+            return res.status(400).send({ message: 'Token is required.' });
+        }
+
+        // Vérification si le token existe en base
+        const checkSql = "SELECT * FROM User WHERE email_verification_token = ?";
+        const result = await database.raw(checkSql, [token]);
+        const user = result[0][0];
+        if (!user) {
+             res.status(401).send({ message: 'Invalid or expired token.' });
+        } else {
+        // Mise à jour pour invalider le token
+        const updateSql = "UPDATE User SET email_verification_token = NULL WHERE Id = ?";
+        await database.raw(updateSql, [user.Id]);
+        // Réponse finale : confirmation
+        res.send({ message: 'Email successfully verified.' });
+        }
+
+        const sql = "UPDATE User SET is_email_verified = '1' WHERE Id = ?";
+        await database.raw(sql, [user.Id]);
+        
+    } catch (error) {
+        console.error('Error verifying email:', error);
+        return res.status(500).send({ message: 'Internal server error.' });
+    }
 });
+
 
 module.exports = router;
