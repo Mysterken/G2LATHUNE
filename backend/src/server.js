@@ -12,6 +12,7 @@ const { rate_limiter_all } = require("./rate_limiter");
 const authRoutesv1 = require('./routes/v1/authRoutes');
 const ethRoutesv1 = require('./routes/v1/ethRoutes'); 
 const walletRoutesv1 = require('./routes/v1/walletRoutes');
+const profileRoutesv1 = require('./routes/v1/profileRoutes');
 
 
 const app = express();
@@ -29,6 +30,7 @@ app.use(cors({
 app.use('/api/v1/auth', rate_limiter_all, authRoutesv1);
 app.use('/api/v1/eth', rate_limiter_all, ethRoutesv1);
 app.use('/api/v1/wallet', rate_limiter_all, walletRoutesv1);
+app.use('/api/v1/profile', rate_limiter_all, profileRoutesv1);
 
 app.get('/test', (req, res) => {
     res.send('Le backend fonctionne !');
