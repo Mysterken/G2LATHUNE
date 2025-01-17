@@ -10,7 +10,7 @@ const ForgotPassword = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!email || !/\S+@\S+\.\S+/.test(email)) {
-            setError("Please enter a valid email address.");
+            setError("Veuillez entrer une adresse email valide.");
             return;
         }
         setIsLoading(true);
@@ -19,8 +19,8 @@ const ForgotPassword = () => {
             setMessage(data.message);
             setError("");
         } catch (error) {
-            console.error("Failed to send reset password link:", error);
-            setError("Failed to send reset password link. Please try again.");
+            console.error("Échec de l'envoi du lien de réinitialisation :", error);
+            setError("Échec de l'envoi du lien de réinitialisation. Veuillez réessayer.");
         } finally {
             setIsLoading(false);
         }
@@ -28,15 +28,23 @@ const ForgotPassword = () => {
 
     return (
         <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-            <h1 className="text-2xl font-bold text-center mb-4">Forgot Password</h1>
+            <h1 className="text-2xl font-bold text-center mb-4">Mot de passe oublié</h1>
             {msg && (
-                <div className="text-green-500 bg-green-50 p-2 rounded-md flex items-center mb-4">
+                <div
+                    className="text-green-500 bg-green-50 p-2 rounded-md flex items-center mb-4"
+                    role="alert"
+                    aria-live="polite"
+                >
                     <span>✅</span>
                     <span className="ml-2">{msg}</span>
                 </div>
             )}
             {error && (
-                <div className="text-red-500 bg-red-50 p-2 rounded-md flex items-center mb-4">
+                <div
+                    className="text-red-500 bg-red-50 p-2 rounded-md flex items-center mb-4"
+                    role="alert"
+                    aria-live="assertive"
+                >
                     <span>❌</span>
                     <span className="ml-2">{error}</span>
                 </div>
@@ -55,9 +63,9 @@ const ForgotPassword = () => {
                     type="submit"
                     disabled={isLoading}
                     className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:bg-blue-300"
-                    aria-label="Send reset password link"
+                    aria-label="Envoyer le lien de réinitialisation"
                 >
-                    {isLoading ? "Sending..." : "Send reset password link"}
+                    {isLoading ? "Envoi en cours..." : "Envoyer le lien de réinitialisation"}
                 </button>
             </form>
         </div>
