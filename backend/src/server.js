@@ -50,5 +50,29 @@ app.get("/", async (req, res, next) => {
     }
 });
 
+app.get("/reset_db", async (req, res, next) => {
+    try {
+        await database.raw('DROP TABLE IF EXISTS transactions;');
+        await database.raw('CREATE TABLE transactions (date DATE, price FLOAT);');
+
+        await database.raw('DROP TABLE IF EXISTS User;');
+        await database.raw(`
+            CREATE TABLE User (
+                Id INT AUTO_INCREMENT PRIMARY KEY, 
+                password VARCHAR(100) NOT NULL, 
+                email VARCHAR(100) NOT NULL, 
+                wallet TEXT, 
+                password_refresh_token VARCHAR(100), 
+                is_email_verified TINYINT(1) DEFAULT 0, 
+                email_verification_token TEXT,
+                refresh_token TEXT
+            );
+        `);
+
+        res.json({ message: 'Table reset' });
+    } catch (error) {
+        next(error);
+    }
+});
 
 module.exports = app;
