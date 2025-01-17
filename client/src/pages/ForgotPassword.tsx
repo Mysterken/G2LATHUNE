@@ -30,13 +30,21 @@ const ForgotPassword = () => {
         <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
             <h1 className="text-2xl font-bold text-center mb-4">Forgot Password</h1>
             {msg && (
-                <div className="text-green-500 bg-green-50 p-2 rounded-md flex items-center mb-4">
+                <div
+                    className="text-green-500 bg-green-50 p-2 rounded-md flex items-center mb-4"
+                    role="alert"
+                    aria-live="polite"
+                >
                     <span>✅</span>
                     <span className="ml-2">{msg}</span>
                 </div>
             )}
             {error && (
-                <div className="text-red-500 bg-red-50 p-2 rounded-md flex items-center mb-4">
+                <div
+                    className="text-red-500 bg-red-50 p-2 rounded-md flex items-center mb-4"
+                    role="alert"
+                    aria-live="assertive"
+                >
                     <span>❌</span>
                     <span className="ml-2">{error}</span>
                 </div>

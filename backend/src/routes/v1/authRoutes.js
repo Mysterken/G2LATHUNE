@@ -1,18 +1,18 @@
+const crypto = require('crypto');
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const { rate_limiter_all, rate_limiter_update, rate_limiter_login, rate_limiter_register } = require('../../rate_limiter');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const database = require("../../database");
-const crypto = require('crypto');
 
-const getUserByEmail = async (email) => {
+const getUserByEmail = async(email) => {
     const sql = "SELECT * FROM User WHERE email = ?";
     const [result] = await database.raw(sql, [email]);
     return result.length ? result[0] : null;
 };
 
-const hashPassword = async (password) => {
+const hashPassword = async(password) => {
     const saltRounds = 10;
     return await bcrypt.hash(password, saltRounds);
 };
@@ -21,7 +21,7 @@ const validatePassword = (password) => {
     return password.length >= 8 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /\d/.test(password) && /[!@#$%^&*(),.?":{}|<>]/.test(password);
 };
 
-router.post('/login', rate_limiter_login, async (req, res) => {
+router.post('/login', rate_limiter_login, async(req, res) => {
     try {
         const { email, password } = req.body;
         if (!email || !password) return res.status(400).send({ message: 'Email et password sont requise' });
@@ -49,7 +49,7 @@ router.delete('/logout', (req, res) => {
     res.send('Logout route');
 });
 
-router.post('/register', rate_limiter_register, async (req, res) => {
+router.post('/register', rate_limiter_register, async(req, res) => {
     try {
         const { email, password } = req.body;
         if (!email || !password) return res.status(400).send({ message: 'Email and password are required' });
@@ -63,7 +63,7 @@ router.post('/register', rate_limiter_register, async (req, res) => {
         const hashedPassword = await hashPassword(password);
 
         // creer email_verification_token random avec lib crypto
-        const token = crypto.randomBytes(64).toString('hex'); 
+        const token = crypto.randomBytes(64).toString('hex');
         // ajouter au sql
 
 
@@ -79,7 +79,7 @@ router.post('/register', rate_limiter_register, async (req, res) => {
     }
 });
 
-router.post('/refresh', async (req, res) => {
+router.post('/refresh', async(req, res) => {
     try {
         const { refreshToken } = req.body;
         if (!refreshToken) return res.status(400).send({ message: 'Refresh token is required.' });
@@ -101,11 +101,50 @@ router.post('/refresh', async (req, res) => {
     }
 });
 
-router.post('/forgot-password', (req, res) => {
-    res.send('Forgot password route');
+router.post("/forgot-password", async(req, res) => {
+    const { email } = req.body;
+
+    try {
+        const [users] = await database.raw("SELECT * FROM User WHERE email = ?", [email]);
+        if (!users || users.length === 0) {
+            return res.status(200).json({ message: "Si cet email existe, un lien sera envoyé." });
+        }
+        const user = users[0];
+
+        // Générer un token aléatoire
+        const token = crypto.randomBytes(32).toString("hex");
+
+        // Vérifiez les données avant la mise à jour
+        if (!token || !user.Id) {
+            console.error("Données manquantes :", { token, userId: user.Id });
+            return res.status(500).json({ message: "Erreur interne : données manquantes pour la mise à jour." });
+        }
+
+        // Mettre à jour la base de données avec le token
+        try {
+            await database.raw(
+                "UPDATE User SET password_refresh_token = ? WHERE Id = ?", [token, user.Id]
+            );
+        } catch (err) {
+            console.error("Erreur lors de la mise à jour du token :", err);
+            throw err;
+        }
+
+        // Construire et afficher le lien de réinitialisation
+        const resetPasswordLink = `http://localhost:3000/reset-password/${token}`;
+        console.log("Lien de réinitialisation :", resetPasswordLink);
+
+        // Répondre au frontend
+        res.json({
+            message: "Si cet email existe, un lien de réinitialisation sera envoyé.",
+        });
+    } catch (error) {
+        console.error("Erreur lors de la génération du lien de réinitialisation :", error);
+        res.status(500).json({ message: "Erreur interne du serveur." });
+    }
 });
 
-router.post('/reset-password', async (req, res) => {
+router.post('/reset-password', async(req, res) => {
     try {
         const { password, token } = req.body;
         if (!password) return res.status(400).send({ message: 'Tous les champs sont requis.' });
@@ -124,7 +163,7 @@ router.post('/reset-password', async (req, res) => {
     }
 });
 
-router.post('/verify-email', async (req, res) => {
+router.post('/verify-email', async(req, res) => {
     try {
         // Récupération du token depuis le body
         const rawToken = req.body;
@@ -139,23 +178,24 @@ router.post('/verify-email', async (req, res) => {
         const result = await database.raw(checkSql, [token]);
         const user = result[0][0];
         if (!user) {
-             res.status(401).send({ message: 'Invalid or expired token.' });
+            res.status(401).send({ message: 'Invalid or expired token.' });
         } else {
-        // Mise à jour pour invalider le token
-        const updateSql = "UPDATE User SET email_verification_token = NULL WHERE Id = ?";
-        await database.raw(updateSql, [user.Id]);
-        // Réponse finale : confirmation
-        res.send({ message: 'Email successfully verified.' });
+            // Mise à jour pour invalider le token
+            const updateSql = "UPDATE User SET email_verification_token = NULL WHERE Id = ?";
+            await database.raw(updateSql, [user.Id]);
+            // Réponse finale : confirmation
+            res.send({ message: 'Email successfully verified.' });
         }
 
         const sql = "UPDATE User SET is_email_verified = '1' WHERE Id = ?";
         await database.raw(sql, [user.Id]);
-        
+
     } catch (error) {
         console.error('Error verifying email:', error);
         return res.status(500).send({ message: 'Internal server error.' });
     }
 });
+
 
 
 module.exports = router;
