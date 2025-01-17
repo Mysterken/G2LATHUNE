@@ -1,5 +1,4 @@
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const { rate_limiter_all, rate_limiter_update, rate_limiter_login, rate_limiter_register } = require('../../rate_limiter');
@@ -90,7 +89,6 @@ router.post("/forgot-password", async(req, res) => {
     try {
         const [users] = await database.raw("SELECT * FROM User WHERE email = ?", [email]);
         if (!users || users.length === 0) {
-            console.log("Aucun utilisateur trouvé pour cet email :", email);
             return res.status(200).json({ message: "Si cet email existe, un lien sera envoyé." });
         }
         const user = users[0];
@@ -106,11 +104,9 @@ router.post("/forgot-password", async(req, res) => {
 
         // Mettre à jour la base de données avec le token
         try {
-            console.log("Mise à jour du token dans la base de données pour l'utilisateur :", user.email);
             await database.raw(
                 "UPDATE User SET password_refresh_token = ? WHERE Id = ?", [token, user.Id]
             );
-            console.log("Token mis à jour avec succès !");
         } catch (err) {
             console.error("Erreur lors de la mise à jour du token :", err);
             throw err;
