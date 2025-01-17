@@ -3,6 +3,7 @@ const router = express.Router();
 const database = require("../../database");
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 const apiKey = process.env.KEY_API;
 
@@ -44,7 +45,10 @@ router.get('/get_data', async (req, res) => {
     const sql = "SELECT * FROM User WHERE email = ?";
     let [user] = await database.raw(sql, [email])
 
-    if (!user || user.length === 0) {
+    // compare token with user.refresh_token
+    const isTokenValid = await bcrypt.compare(token, user[0].refresh_token);
+
+    if (!user || user.length === 0 || !isTokenValid) {
         return res.status(401).json({ error: "Unauthorized" });
     }
 
