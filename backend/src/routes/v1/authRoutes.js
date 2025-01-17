@@ -118,8 +118,38 @@ router.post('/reset-password', async (req, res) => {
     }
 });
 
-router.get('/verify-email', (req, res) => {
-    res.send('Verify email route');
+router.post('/verify-email', async (req, res) => {
+    try {
+        // Récupération du token depuis le body
+        const rawToken = req.body;
+        const token = rawToken.token;
+
+        if (!token) {
+            return res.status(400).send({ message: 'Token is required.' });
+        }
+
+        // Vérification si le token existe en base
+        const checkSql = "SELECT * FROM User WHERE email_verification_token = ?";
+        const result = await database.raw(checkSql, [token]);
+        const user = result[0][0];
+        if (!user) {
+             res.status(401).send({ message: 'Invalid or expired token.' });
+        } else {
+        // Mise à jour pour invalider le token
+        const updateSql = "UPDATE User SET email_verification_token = NULL WHERE Id = ?";
+        await database.raw(updateSql, [user.Id]);
+        // Réponse finale : confirmation
+        res.send({ message: 'Email successfully verified.' });
+        }
+
+        const sql = "UPDATE User SET is_email_verified = '1' WHERE Id = ?";
+        await database.raw(sql, [user.Id]);
+        
+    } catch (error) {
+        console.error('Error verifying email:', error);
+        return res.status(500).send({ message: 'Internal server error.' });
+    }
 });
+
 
 module.exports = router;
