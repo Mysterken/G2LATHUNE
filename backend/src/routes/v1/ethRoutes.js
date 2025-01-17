@@ -1,5 +1,5 @@
 const express = require('express');
-const { getBalance } = require('../../services/etherscan');
+const { getBalance } = require('../../services/Etherscan');
 
 const router = express.Router();
 

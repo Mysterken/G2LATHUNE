@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const database = require("../../database");
 require('dotenv').config();
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 const apiKey = process.env.KEY_API;
 
@@ -26,6 +28,41 @@ router.get('/get-transactions', async(req, res) => {
     const internalTransactions = await internalResponse.json();
         
     res.json({ normalTransactions, internalTransactions });
+});
+
+router.get('/get_data', async (req, res) => {
+
+    // check if there is a bearer token
+    if (!req.headers.authorization) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    // fetch jwt from bearer token
+    const token = req.headers.authorization.split(' ')[1];
+    const decoded = jwt.verify(token, 'secret');
+    const email = decoded.email;
+
+    const sql = "SELECT * FROM User WHERE email = ?";
+    let [user] = await database.raw(sql, [email])
+
+    // compare token with user.refresh_token
+    const isTokenValid = await bcrypt.compare(token, user[0].refresh_token);
+
+    if (!user || user.length === 0 || !isTokenValid) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    user = user[0];
+
+    const wallet = user.wallet;
+
+    // generate 5-10 random price evolution
+    const priceEvolution = Array.from({ length: Math.floor(Math.random() * 6) + 5 }, (_, i) => ({
+        date: `2021-01-${i + 1}`,
+        price: Math.floor(Math.random() * 1000) + 100,
+    }));
+
+    res.send(priceEvolution);
 });
 
 module.exports = router;
